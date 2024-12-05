@@ -1,4 +1,4 @@
-name: crazy_env
+name: REST_tutorial
 
 dependencies:
   - python=3.11
@@ -6,8 +6,6 @@ dependencies:
   - pip
   - pip:
     - numpy==1.26.4
-    # - pandas
-    # - scikit-learn
     - matplotlib==3.9.2
     - seaborn
     - jupyter
