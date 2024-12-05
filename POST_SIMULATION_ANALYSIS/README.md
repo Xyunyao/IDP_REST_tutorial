@@ -15,7 +15,7 @@ This gives us `replica_temp.xvg` and `replica_index.xvg` as an output. But since
 ```bash
 awk '{if($1==0){print} if(n==50){$1=$1-80.0; print;n=0} n++;}' replica_index.xvg > replica_index.n50.s0.-80.xvg
 ```
-- n50 = every 50th frame
+- n==50 = every 50th frame
 - s0 = start at frame 0
 - -80 shift time index by -80
 
