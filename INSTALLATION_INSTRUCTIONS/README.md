@@ -26,6 +26,7 @@ conda env create -f tutorial_env.yml
 conda activate REST_tutorial
 ```
 or 
+
 Following the creation and activation of a python=3.11 venv environment:
 ```bash
 pip install -r tutorial_env.yml
