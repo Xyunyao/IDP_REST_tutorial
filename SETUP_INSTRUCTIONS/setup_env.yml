@@ -1,0 +1,22 @@
+name: crazy_env
+
+dependencies:
+  - python=3.11
+  - mdtraj==1.9.7
+  - pip
+  - pip:
+    - numpy==1.26.4
+    # - pandas
+    # - scikit-learn
+    - matplotlib==3.9.2
+    - seaborn
+    - jupyter
+    - ipython
+    - scipy==1.14.1
+    - pyblock==0.6
+    - json
+    - MDAnalysis==2.7.0
+
+channels:
+  - defaults
+  - conda-forge
