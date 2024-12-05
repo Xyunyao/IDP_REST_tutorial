@@ -48,17 +48,28 @@ File Tree:
     │   ├── og_topology
     │   │   ├── REST.top
     │   │   └── processed.top
-    │   └── scaled_topologies
-    │       ├── topol_0.top
-    │       ├── topol_1.top
-    │       ├── topol_2.top
-    │       ├── topol_3.top
-    │       ├── topol_4.top
-    │       ├── topol_5.top
-    │       ├── topol_6.top
-    │       ├── topol_7.top
-    │       ├── topol_8.top
-    │       └── topol_9.top
+    │   ├── scaled_topologies
+    │   │   ├── topol_0.top
+    │   │   ├── topol_1.top
+    │   │   ├── topol_2.top
+    │   │   ├── topol_3.top
+    │   │   ├── topol_4.top
+    │   │   ├── topol_5.top
+    │   │   ├── topol_6.top
+    │   │   ├── topol_7.top
+    │   │   ├── topol_8.top
+    │   │   └── topol_9.top
+    │   └── solvated_protein
+    │       ├── solv_ions_0.gro
+    │       ├── solv_ions_1.gro
+    │       ├── solv_ions_2.gro
+    │       ├── solv_ions_3.gro
+    │       ├── solv_ions_4.gro
+    │       ├── solv_ions_5.gro
+    │       ├── solv_ions_6.gro
+    │       ├── solv_ions_7.gro
+    │       ├── solv_ions_8.gro
+    │       └── solv_ions_9.gro
     └── run_md.sh
 ```
 
