@@ -84,7 +84,7 @@ handle_flags() {
                     echo "Must include file with -l FILE or --log=FILE" >&2
                 fi
 
-                    
+
 
                 shift
                 ;;
@@ -151,7 +151,7 @@ cd ../plumed2
 make && make check && make install && echo "Plumed2 compiled successfully" || echo "Plumed2 compilation failed" && exit 1
 
 # Add export commands to bashrc file and source bashrc file
-echo 'export PLUMED_KERNEL="/usr/share/lib/libplumedKernel.so"' >> ~/.bashrc
+echo 'export PLUMED_KERNEL="$HOME/opt/lib/libplumedKernel.so"' >> ~/.bashrc
 echo 'export PATH=$HOME/opt/bin:$PATH' >> ~/.bashrc
 echo 'export PLUMED_ROOT=$HOME/opt'
 source ~/.bashrc
@@ -164,4 +164,4 @@ plumed patch -e gromacs-${GMX_version}
 mkdir build
 cd build
 cmake .. ${CMAKE_ARGS}
-make && make check && make install && echo "gromacs successfully compiled with plumed2" || echo "compilation of gromacs with plumed failed"
+make && make check && make install && echo "gromacs successfully compiled with plumed2" || (echo "compilation of gromacs with plumed failed" >&2)
