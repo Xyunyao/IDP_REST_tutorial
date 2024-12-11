@@ -1,6 +1,6 @@
 # Reference files
 
-We provide you with a set of reference files which you can use to compare the files while performing the tutorial. 
+A set of reference files are provided here which will be used in the tutorial and also compare the files while performing the tutorial. 
 - `equilibrated_configurations` contains the gromacs structure files of replicas after a successful equilibration at NVT ensemble.
     ```bash
     ./equilibrated_configurations/
@@ -15,7 +15,15 @@ We provide you with a set of reference files which you can use to compare the fi
     ├── 8.gro
     └── 9.gro
     ```
-- `og_topology` has topology file after the protein box is solvated and respective ions are added and topology file used as a input to `plumed` to generate scaled topology files for respective replicas.
+- `og_topology` has two files in it. `processed.top` topology file contains the information after the protein box is solvated and respective ions are added which you can see at `[ molecules ]` section.
+    ```bash
+    [ molecules ]
+    ; Compound        #mols
+    Protein_chain_A     1
+    SOL         8763
+    NA         8
+    ```
+    This topology file will be used as an input to `plumed` to generate scaled topology files for respective replicas.
     ```bash
     ./og_topology/
     ├── REST.top
@@ -34,4 +42,18 @@ We provide you with a set of reference files which you can use to compare the fi
     ├── topol_7.top
     ├── topol_8.top
     └── topol_9.top
+    ```
+- `solvated_protein` contains the structure files with solvated protein and respective ions required for neutralization of the system.
+    ```bash
+    ./solvated_protein/
+    ├── solv_ions_0.gro
+    ├── solv_ions_1.gro
+    ├── solv_ions_2.gro
+    ├── solv_ions_3.gro
+    ├── solv_ions_4.gro
+    ├── solv_ions_5.gro
+    ├── solv_ions_6.gro
+    ├── solv_ions_7.gro
+    ├── solv_ions_8.gro
+    └── solv_ions_9.gro
     ```
