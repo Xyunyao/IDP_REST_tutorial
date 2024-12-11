@@ -16,20 +16,25 @@
 # Default variables
 
 verbose_mode=false
-output_file=""
-CMAKE_ARGS="-DGMX_MPI -DGMX_BUILD_OWN_FFTW=ON"
+log_file=""
+CMAKE_ARGS="-DGMX_MPI=on -DGMX_BUILD_OWN_FFTW=ON"
 INSTALL_ROOT=$HOME/opt
-
+MPICXX=""
+make_flag=""
+CUDA="-DGMX_USE_CUDA=off"
 
 
 # Function to display script usage
 
 usage() {
 	echo "Usage: $0 [Options]"
+	echo "Required Options:"
+	echo " -mpi $MPICXX, --mpi=$MPICXX mpi C compiler wrapper full path"
 	echo "Options:"
 	echo " -h, --help	Display this help message"
 	echo " -v, --verbose	Enable verbosity"
-	echo " -o, --ofile	Output FILE"
+	echo " -l, --log	Output FILE"
+	echo " -j, --ncpu   number of cpu threads to supply make" 
 	echo " -c, --cuda	cuda "
     echo "     --installdir (Default) \$HOME/opt"
     echo "     --failsafe   Use SSE4.1"
@@ -56,25 +61,35 @@ handle_flags() {
 			-v | --verbose)
 				verbose_mode=true
 				;;
-			-f | --file*)
+			-mpi | --mpi*)
 				if ! has_argument $@
 				then
-					echo "File not specified." >&2
-					usage
-					exit 1
+					echo "MPICXX variable cannot be empty" >&2
 				fi
 
-				output_file=$(extract_argument $@)
+				MPICXX=$(get_argument $@)
 
 				shift
 				;;
+			-j | --ncpu*)
+				if ! has_argument $@
+				then
+					echo "-j, --ncpu requires an int value" >&2
+				fi
+
+				make_flag="-j $(get_argument $@)"
+
+				shift
+				;;
+			
             -c | --cuda*)
                 if ! has_argument $@
                 then
                     echo "CUDA_TOOLKIT_DIRECTORY not supplied, e.g. /usr/local/cuda" >&2
                 fi
 
-                CMAKE_ARGS+=" -DGMX_GPU=CUDA -DCUDA_TOOLKIT_ROOT_DIR=$(extract_argument $@)"
+                CMAKE_ARGS+=" -DGMX_GPU=CUDA -DCUDA_TOOLKIT_ROOT_DIR=$(get_argument $@)"
+				CUDA=" -DGMX_USE_CUDA=on"
 
                 shift
                 ;;
@@ -84,7 +99,7 @@ handle_flags() {
                     echo "Must include file with -l FILE or --log=FILE" >&2
                 fi
 
-
+				log_file="$(get_argument $@)"
 
                 shift
                 ;;
@@ -94,12 +109,13 @@ handle_flags() {
                     echo "When using --installdir you must supply a directory, --installdir=/usr/local/" >&2
                 fi
 
-                INSTALL_ROOT="$(extract_argument $@)"
+                INSTALL_ROOT="$(get_argument $@)"
 
                 shift
                 ;;
             --failsafe)
                 CMAKE_ARGS+=" -DGMX_SIMD=SSE4.1"
+				;;
 			*)
 				echo "Invalid option:$1" >&2
 				usage
@@ -108,7 +124,15 @@ handle_flags() {
 		esac
 		shift
 	done
+	if [ ! -e "$MPICXX" ]
+	then
+		printf "\n####  Must supply -mpi MPICXX to proceed  ####\n\n" >&2
+		usage
+		exit 1
+	fi
+
     CMAKE_ARGS+=" -DCMAKE_INSTALL_PREFIX=${INSTALL_ROOT}"
+	CMAKE_ARGS+=" ${CUDA}"
 }
 
 
@@ -117,18 +141,22 @@ handle_flags() {
 handle_flags "$@"
 
 
-# Perform the desired actions
-
-if [ "$verbose_mode" = true ]
+if [ -n "$log_file" ]
 then
-	echo "Verbose mode enable."
+	echo "Log file specified: $log_file"
+	exec > >(tee ${log_file}) 2>&1
 fi
 
-if [ -n "$output_file" ]
+if [ -n "$verbose_mode" ]
 then
-	echo "Output file specified: $output_file"
+	set -x
+	set -v
 fi
 
+PS4='${LINENO}: '
+
+eval "$(conda shell.bash hook)" 
+conda activate REST_tutorial
 
 mkdir src
 cd src
@@ -137,31 +165,34 @@ cd src
 git clone https://github.com/plumed/plumed2.git
 git clone https://github.com/gromacs/gromacs.git
 
-# Checkout gromacs 2024.3
+# Checkout gromacs 2022.5
 cd gromacs
-GMX_version=2024.3
+GMX_version=2022.5
 git checkout -b v${GMX_version}
 
 # Configure and install plumed2
 # Plumed2 and gromacs require MPI and the MPICXX environment variable set
 cd ../plumed2
-./configure --prefix=${INSTALL_ROOT}/opt --enable-modules=all CXX="$MPICXX" CXXFLAGS="-O3 -axSSE2,AVX" 
+./configure --prefix=${INSTALL_ROOT} --enable-modules=all --enable-mpi CXX="$MPICXX" 
 
-# Compile Plumed2
-make && make check && make install && echo "Plumed2 compiled successfully" || echo "Plumed2 compilation failed" && exit 1
+# Compile Plumed2, this is a dirty install, normally following compiling 'make check' would follow 
+make ${make_flag} && make install && echo "Plumed2 compiled successfully" || (echo "Plumed2 compilation failed" && exit 1)
 
 # Add export commands to bashrc file and source bashrc file
-echo 'export PLUMED_KERNEL="$HOME/opt/lib/libplumedKernel.so"' >> ~/.bashrc
-echo 'export PATH=$HOME/opt/bin:$PATH' >> ~/.bashrc
-echo 'export PLUMED_ROOT=$HOME/opt'
-source ~/.bashrc
+echo 'export PLUMED_KERNEL=$HOME/opt/lib/libplumedKernel.so' > ../../.bashrc
+echo 'export PATH=$HOME/opt/bin:$HOME/opt/lib:$PATH' >> ../../.bashrc
+echo 'export PLUMED_ROOT=$HOME/opt/lib/plumed' >> ../../.bashrc
+echo 'export LD_LIBRARY_PATH="$HOME/opt/lib/:$LD_LIBRARY_PATH"' >> ../../.bashrc
+echo 'export LIBRARY_PATH="$HOME/opt/lib/:$LIBRARY_PATH"' >> ../../.bashrc
+cd ..
+source ../.bashrc
 
 # Patch gromacs with plumed patch command
-cd ../gromacs
-plumed patch -e gromacs-${GMX_version}
+cd gromacs
+${INSTALL_ROOT}/bin/plumed patch -p -e gromacs-${GMX_version} || (echo "patching failed, check log" && exit 1)
 
 # Run cmake command and compile patched gromacs
 mkdir build
 cd build
 cmake .. ${CMAKE_ARGS}
-make && make check && make install && echo "gromacs successfully compiled with plumed2" || (echo "compilation of gromacs with plumed failed" >&2)
+make ${make_flag} && make install && echo "gromacs successfully compiled with plumed2" || (echo "compilation of gromacs with plumed failed" >&2)

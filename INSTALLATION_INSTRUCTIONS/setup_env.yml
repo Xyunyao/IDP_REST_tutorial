@@ -1,7 +1,7 @@
 name: REST_tutorial
 
 dependencies:
-  - python=3.11
+  - python==3.11
   - mdtraj==1.9.7
   - pip
   - pip:
@@ -12,7 +12,7 @@ dependencies:
     - ipython
     - scipy==1.14.1
     - pyblock==0.6
-    - json
+    - cmake
     - MDAnalysis==2.7.0
 
 channels:
