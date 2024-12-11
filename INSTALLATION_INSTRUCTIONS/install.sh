@@ -22,6 +22,8 @@ INSTALL_ROOT=$HOME/opt
 MPICXX=""
 make_flag=""
 CUDA="-DGMX_USE_CUDA=off"
+GMX_version=2022.5
+Plumed_version=2.9.1
 
 
 # Function to display script usage
@@ -167,12 +169,13 @@ git clone https://github.com/gromacs/gromacs.git
 
 # Checkout gromacs 2022.5
 cd gromacs
-GMX_version=2022.5
+
 git checkout -b v${GMX_version}
 
 # Configure and install plumed2
 # Plumed2 and gromacs require MPI and the MPICXX environment variable set
 cd ../plumed2
+git checkout -n v${Plumed_version}
 ./configure --prefix=${INSTALL_ROOT} --enable-modules=all --enable-mpi CXX="$MPICXX" 
 
 # Compile Plumed2, this is a dirty install, normally following compiling 'make check' would follow 
