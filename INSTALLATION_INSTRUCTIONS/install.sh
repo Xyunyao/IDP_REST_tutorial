@@ -24,6 +24,7 @@ make_flag=""
 CUDA="-DGMX_USE_CUDA=off"
 GMX_version=2022.5
 Plumed_version=2.9.1
+SIMD="-DGMX_SIMD=AVX2_256"
 
 
 # Function to display script usage
@@ -37,6 +38,7 @@ usage() {
 	echo " -v, --verbose	Enable verbosity"
 	echo " -l, --log	Output FILE"
 	echo " -j, --ncpu   number of cpu threads to supply make" 
+	echo " -simd, --simd architecture type, refer to GMX Manual"
 	echo " -c, --cuda	cuda "
     echo "     --installdir (Default) \$HOME/opt"
     echo "     --failsafe   Use SSE4.1"
@@ -83,7 +85,16 @@ handle_flags() {
 
 				shift
 				;;
-			
+			-simd | --simd*)
+				if ! has_argument $@
+				then
+					echo "-simd, --simd requires string" >&2
+				fi
+
+				SIMD=" -DGMX_SIMD=$(get_argument $@)"
+
+				shift
+				;;
             -c | --cuda*)
                 if ! has_argument $@
                 then
@@ -116,7 +127,7 @@ handle_flags() {
                 shift
                 ;;
             --failsafe)
-                CMAKE_ARGS+=" -DGMX_SIMD=SSE4.1"
+                SIMD=" -DGMX_SIMD=SSE4.1"
 				;;
 			*)
 				echo "Invalid option:$1" >&2
@@ -135,6 +146,7 @@ handle_flags() {
 
     CMAKE_ARGS+=" -DCMAKE_INSTALL_PREFIX=${INSTALL_ROOT}"
 	CMAKE_ARGS+=" ${CUDA}"
+	CMAKE_ARGS+=" ${SIMD}"
 }
 
 
@@ -175,7 +187,7 @@ git checkout -b v${GMX_version}
 # Configure and install plumed2
 # Plumed2 and gromacs require MPI and the MPICXX environment variable set
 cd ../plumed2
-git checkout -n v${Plumed_version}
+git checkout -b v${Plumed_version}
 ./configure --prefix=${INSTALL_ROOT} --enable-modules=all --enable-mpi CXX="$MPICXX" 
 
 # Compile Plumed2, this is a dirty install, normally following compiling 'make check' would follow 
