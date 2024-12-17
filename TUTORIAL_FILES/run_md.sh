@@ -197,6 +197,7 @@ simulations () {
 
             cd REST
             cp mdp_files/prod.mdp REST/
+            echo "Scaling topologies for each replica and creating run input file prod.tpr"
             for((i=0;i<10;i++))
             do
                 mkdir $i
@@ -207,7 +208,7 @@ simulations () {
                 gmx grompp -f ../prod.mdp -c $cdir/npt1.gro -p topol.top -o prod.tpr -maxwarn 2
                 cd $cdir/REST
             done
-            mpirun -np 10 gmx mdrun -v -deffnm npt1 -multidir {0..9} -replex 800 -plumed plumed.dat -hrex -dlb no
+            mpirun -np 10 gmx mdrun $verbose -deffnm npt1 -multidir {0..9} -replex 800 -plumed plumed.dat -hrex -dlb no
             ;;
         *)
             echo "stage name must match one of: Setup, Min, NVT, NPT, REST"
@@ -222,7 +223,6 @@ simulations () {
 # Main
 
 handle_flags "$@"
-
 
 # Perform the desired actions
 
