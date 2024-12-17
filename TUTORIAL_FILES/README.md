@@ -65,7 +65,7 @@ Test for pressure and volume convergence with `gmx energy`.
 
 #### Creating the Replica Exchange Base topology which will be used for scaling
 
-Once well equilibrated creating a rest2 edited topology file is required to setup the rest directories and produce the run input files, `prod.tpr`. This edited topology will contain subscripts appended to the atom types of the molecule of interest, the protein. The `-s NPT` stage will produce the file `processed.top`. Before proceeding with the REST2 simulations modify the atom types with the command below. `start_line` and `end_line` are the line numbers where the proteins `[atoms]` section starts and ends, respectively. Using vim can make this process easier.
+Once well equilibrated creating a rest2 edited topology file is required to setup the rest directories and produce the run input files, `prod.tpr`. This edited topology will contain subscripts appended to the atom types of the molecule of interest, the protein. The `-s NPT` stage will produce the file `processed.top`. Before proceeding with the REST2 simulations modify the atom types with the command below. `start_line` and `end_line` are defined as the line number before and after the proteins `[atoms]` section, respectively. Using vim can make this process easier.
 ```bash
 vim processed.top
 ```
@@ -90,6 +90,8 @@ run_md.sh -s REST -t REST.top
 
 Questions to answer:
 * Upon completing the basic tutorial answer these questions.
+  * How are the acceptance ratios between replicas? How do you know if these acceptance ratios are good? 
+  * Do you have good similarity between contact matrices? If not how do you correct for this issue? 
   * What differences do you observe between temperature replicas, as well as demultiplexed replicas? 
   * Are your simulations converged and how do you know? 
   * Try an observable of your interest, does this observable look converged, if not how can you overcome this discrepancy? 
