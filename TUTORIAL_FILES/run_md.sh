@@ -31,7 +31,7 @@
 
 verbose=""
 log=""
-ensemble=""
+stage=""
 topol=""
 
 
@@ -78,7 +78,7 @@ handle_flags() {
 				exit 0
 				;;
 			-v | --verbose)
-				verbose_mode=" -v"
+				verbose=" -v"
 				;;
 			-p | --topol*)
 				if ! has_argument $@
@@ -95,12 +95,12 @@ handle_flags() {
             -s | --stage*)
                 if ! has_argument $@
                 then
-                    echo "When using the ensemble flag you must provide Min, NVT, NPT, or REST"
+                    echo "When using the stage flag you must provide Min, NVT, NPT, or REST"
                     usage
                     exit 1
                 fi
 
-                ensemble=$(extract_argument $@)
+                stage=$(extract_argument $@)
 
                 shift
                 ;;
@@ -127,7 +127,7 @@ handle_flags() {
 }
 
 simulations () {
-    case ${ensemble,,} in
+    case ${stage,,} in
         setup)
             box=6.5
             echo "Solvating with box size $box nm."
@@ -156,7 +156,7 @@ simulations () {
                 echo "min.gro missing, run the min stage"
                 exit 1
             fi
-            echo "Thermalizing the system and Equilibrating to 300K under the NVT ensemble."
+            echo "Thermalizing the system and Equilibrating to 300K under the NVT Ensemble."
             gmx grompp -f mdp_files/NVT.mdp -p topol.top -c min.gro -o nvt.tpr 
             gmx mdrun $verbose -s nvt.tpr -deffnm nvt
             echo "System equilibrated under NVT."
@@ -168,10 +168,10 @@ simulations () {
                 exit 1
             fi
             echo "Pressure and Temperature Equilibration at 1 bar and 300K (NPT)"
-            echo "Stage 1: Short Berendsen pressure relaxation."
+            echo "stage 1: Short Berendsen pressure relaxation."
             gmx grompp -f mdp_files/NPT0.mdp -p topol.top -c nvt.gro -o npt0.tpr 
             gmx mdrun $verbose -s npt0.tpr -deffnm npt0
-            echo "Stage 2: Long Parrinello-Rahman pressure Equilibration."
+            echo "stage 2: Long Parrinello-Rahman pressure Equilibration."
             gmx grompp -f mdp_files/NPT1.mdp -p topol.top -c npt0.gro -o npt1.tpr -pp processed.top
             gmx mdrun $verbose -s npt1.tpr -deffnm npt1
             echo "System NPT equilibration complete, check volume and pressure convergence."
@@ -210,7 +210,7 @@ simulations () {
             mpirun -np 10 gmx mdrun -v -deffnm npt1 -multidir {0..9} -replex 800 -plumed plumed.dat -hrex -dlb no
             ;;
         *)
-            echo "Ensemble name must match one of: Setup, Min, NVT, NPT, REST"
+            echo "stage name must match one of: Setup, Min, NVT, NPT, REST"
             usage
             exit
             ;;
@@ -226,7 +226,7 @@ handle_flags "$@"
 
 # Perform the desired actions
 
-if [ "$verbose_mode" = true ]
+if [ "$verbose" = true ]
 then
 	echo "Verbose mode enable."
     set -x
