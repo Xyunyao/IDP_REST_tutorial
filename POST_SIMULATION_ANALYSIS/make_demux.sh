@@ -18,12 +18,12 @@ verbose=""
 usage() {
 	echo "Usage: $0 [Options]"
 	echo "Options:"
-	echo " -h, --help	Display this help message"
-	echo " -v, --verbose	Enable verbosity"
-    echo " -i, --index Number of replicas"
-    echo " -d, --restdir replica exchange directory"
-    echo " -n, --name trajectory name, i.e. whole.xtc"
-	echo " -l, --log	STDIO log File"
+	echo " -h, --help       Display this help message"
+	echo " -v, --verbose    Enable verbosity"
+    echo " -i, --index      replica index xvg file"
+    echo " -d, --restdir    replica exchange directory"
+    echo " -n, --name       trajectory name, i.e. whole.xtc"
+	echo " -l, --log        STDIO log File"
 }
 
 has_argument() {
@@ -60,19 +60,24 @@ handle_flags() {
             -n | --name*)
 				if ! has_argument $@
 				then
-					echo "Replica Name not specified." >&2
+					echo "Replica xtc Name not specified." >&2
 					usage
 					exit 1
 				fi
 
 				name=$(extract_argument $@)
+                if [[ $name == *.xtc ]]
+                then
+                    temp=$(basename $name .xtc)
+                    name=$temp
+                fi
 
 				shift
 				;;
             -i | --index*)
                 if ! has_argument $@
                 then
-                    echo "Must provide the number of replicas with -i or --index"
+                    echo "Must provide the replica index xvg file with -i or --index"
                     usage
                     exit 1
                 fi

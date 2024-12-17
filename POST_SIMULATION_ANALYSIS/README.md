@@ -7,7 +7,7 @@ Hola! You are here means you successfully simulated an set of trajectories using
 First step of our analysis workflow is to extract the absolute replica path followed by respective replicas. This will be helpful as a sanity check and debugging of our REST2 simulations. `demux.fix.pl` is used to to generate a set of data files which contains the required information useful for demultiplexing. We use the [prod.log](https://dartmouth-my.sharepoint.com/:f:/r/personal/f006f50_dartmouth_edu/Documents/trajectories_for_book_chapter?csf=1&web=1&e=h22nwg) file of the base replica as an input. When prompted we need to mention the time step of our simulations which is 0.002 ps in our case.
 
 ```bash
-perl demux.fix.pl prod.log
+perl demux.fix.pl <path to base replica prod.log>
 ```
 
 This gives us `replica_temp.xvg` and `replica_index.xvg` as an output. But since the frequency of saving co-ordinates in `prod.mdp` is different from the proposed frequency of exchange attempts we need to correct this. The correction is performed using:
@@ -31,7 +31,19 @@ awk '{if($1==0){print} if(n==500){$1=$1-800.0; print;n=0} n++;}' replica_index.x
 Now we have a corrected index file, we use it generate the demultiplexed trajectories. This can be done using `make_demux.sh` as :
 
 ```bash
-sh make_demux.sh <path/to/replica/index/xvg/file/> <path/to/replica/directories/>
+% ./make_demux.sh -h
+Usage: ./make_demux.sh [Options]
+Options:
+ -h, --help       Display this help message
+ -v, --verbose    Enable verbosity
+ -i, --index      replica index xvg file
+ -d, --restdir    replica exchange directory
+ -n, --name       trajectory name, i.e. whole.xtc
+ -l, --log        STDIO log File
+```
+
+```bash
+./make_demux.sh -i <number of replicas> -i <path to replica index xvg file> -d <path to replica directories> -n <[whole] prefix name of replica xtc file>
 ```
 
 Now we have a set of trajectories which has the absolute path taken by the respective replicas.
