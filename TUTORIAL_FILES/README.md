@@ -27,3 +27,13 @@ Stages need to be performed in order. Once well equilibrated, creating a rest2 e
 ```bash
 awk '{n++; if(n>start_line) if(n<end_line) if(NF>7) if($1+0==$1){$2=$2"_"}; print;}' processed.top > REST.top
 ```
+
+Questions to answer:
+* Upon completing the basic tutorial answer these questions.
+  * What differences do you observe between temperature replicas, as well as demultiplexed replicas? 
+  * 
+
+* After completing the basic tutorial, rerun the tutorial with 10 replicas each passing through the equilibration phases, you can start with your neutralized-solvated system for each replica. 
+  * What differences in final box size do you observe at the end of the NPT1 stage? 
+  * Take the average box length for the last 10 ns of each replica's NPT1 stage. Use this average and change the box size of each replica thus making their volumes equal, run rest again, then perform the analysis and compare your results. What differences do you see and what contributes to these differences? 
+  
