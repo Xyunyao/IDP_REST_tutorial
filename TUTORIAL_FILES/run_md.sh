@@ -29,9 +29,10 @@
 
 # Default variables
 
-verbose_mode=""
-output_file=""
+verbose=""
+log=""
 ensemble=""
+topol=""
 
 
 # Function to display script usage
@@ -52,6 +53,19 @@ has_argument() {
 
 get_argument() {
 	echo "${2:-${1#*=}}"
+}
+
+lambda_value () {
+    Ti=300
+    Tf=450
+    awk -v tmin=$Ti \
+    -v tmax=$Tf \
+    -v n=10 \
+    -v i=$@\
+  'BEGIN{
+    t=tmin*exp(i*log(tmax/tmin)/(n));
+    printf(t);
+}'
 }
 
 # Flag handler
@@ -78,7 +92,7 @@ handle_flags() {
 
 				shift
 				;;
-            -e | --ensemble*)
+            -s | --stage*)
                 if ! has_argument $@
                 then
                     echo "When using the ensemble flag you must provide Min, NVT, NPT, or REST"
@@ -87,18 +101,6 @@ handle_flags() {
                 fi
 
                 ensemble=$(extract_argument $@)
-
-                shift
-                ;;
-            -b, --box*)
-                if ! has_argument $@
-                then
-                    echo "When using the box flag you must provide a box length (nm)"
-                    usage
-                    exit 1
-                fi
-
-                box=$(extract_argument $@)
 
                 shift
                 ;;
@@ -138,29 +140,74 @@ simulations () {
             echo "System Prepared."
             ;;
         min)
+            if [ ! -f "ions.gro" ]
+            then
+                echo "ions.gro missing, run the setup stage"
+                exit 1
+            fi
             echo "Performing System Minimization."
             gmx grompp -f mdp_files/minimz.mdp -c system.gro -p topol.top -o min.tpr -maxwarn 2
             gmx mdrun $verbose -s min.tpr -deffnm min
             echo "Minimized system."
             ;;
         nvt)
+            if [ ! -f "min.gro" ]
+            then
+                echo "min.gro missing, run the min stage"
+                exit 1
+            fi
             echo "Thermalizing the system and Equilibrating to 300K under the NVT ensemble."
             gmx grompp -f mdp_files/NVT.mdp -p topol.top -c min.gro -o nvt.tpr 
             gmx mdrun $verbose -s nvt.tpr -deffnm nvt
             echo "System equilibrated under NVT."
             ;;
         npt)
+            if [ ! -f "nvt.gro" ]
+            then
+                echo "nvt.gro missing, run the nvt stage"
+                exit 1
+            fi
             echo "Pressure and Temperature Equilibration at 1 bar and 300K (NPT)"
             echo "Stage 1: Short Berendsen pressure relaxation."
             gmx grompp -f mdp_files/NPT0.mdp -p topol.top -c nvt.gro -o npt0.tpr 
             gmx mdrun $verbose -s npt0.tpr -deffnm npt0
             echo "Stage 2: Long Parrinello-Rahman pressure Equilibration."
-            gmx grompp -f mdp_files/NPT1.mdp -p topol.top -c npt0.gro -o npt1.tpr 
+            gmx grompp -f mdp_files/NPT1.mdp -p topol.top -c npt0.gro -o npt1.tpr -pp processed.top
             gmx mdrun $verbose -s npt1.tpr -deffnm npt1
             echo "System NPT equilibration complete, check volume and pressure convergence."
+            echo "Before performing REST2 Simulations, copy the processed.top file and"
+            echo "add underscores, e.g. HA_, follow the README guide." 
             ;;
         rest)
-            echo ""
+            if [ ! -f $topol ]
+            then 
+                echo "Rest topology does not exist."
+                usage
+                exit 1
+            fi
+            if [ ! -f "npt1.gro" ]
+            then
+                echo "npt1.gro missing, run the npt stage"
+                exit 1
+            fi
+
+            echo "Creating rest directory and subdiretories."
+            mkdir REST
+            cdir=`pwd`
+
+            cd REST
+            cp mdp_files/prod.mdp REST/
+            for((i=0;i<10;i++))
+            do
+                mkdir $i
+                plumed partial_tempering $(lambda_value $i) < $topol > $i/topol.top
+                touch plumed.dat
+                
+                cd $i/
+                gmx grompp -f ../prod.mdp -c $cdir/npt1.gro -p topol.top -o prod.tpr -maxwarn 2
+                cd $cdir/REST
+            done
+            mpirun -np 10 gmx mdrun -v -deffnm npt1 -multidir {0..9} -replex 800 -plumed plumed.dat -hrex -dlb no
             ;;
         *)
             echo "Ensemble name must match one of: Setup, Min, NVT, NPT, REST"
@@ -182,167 +229,14 @@ handle_flags "$@"
 if [ "$verbose_mode" = true ]
 then
 	echo "Verbose mode enable."
+    set -x
+	set -v
 fi
 
 if [ -n "$log" ]
 then
-	echo "Output file specified: $log"
+	echo "Log file specified: $log"
+    exec > >(tee ${log_file}) 2>&1
 fi
 
-# Main
-
-handle_flags "$@"
-
-
-# Perform the desired actions
-
-if [ "$verbose_mode" = true ]
-then
-	echo "Verbose mode enable."
-fi
-
-if [ -n "$output_file" ]
-then
-	echo "Output file specified: $output_file"
-fi
-
-
-
-source ${HOME}/.bashrc
-module load openmpi/5.0
-. .gmx_container.bash
-
-mpi_threads 20
-# module list
-if [[ ${flags[0]} == '--packmol-populate' ]]
-then
-	if [[ ! -d "input_gro" ]]
-	then
-		mkdir input_gro
-	fi
-
-	for((i=1;i<=20;i++))
-	do
-		l=${flags[1]}
-		gmx_s editconf -f setup/system_pdbs/system${i}.pdb -o input_gro/system${i}.gro -box $l $l $l -resnr 1
-	done
-fi
-
-if [[ ${flags[0]} == '-em' ]]
-then
-
-for((i=1;i<=20;i++))
-do
-
-rm -rf $i
-mkdir $i
-
-cp topol_start.top $i/topol.top
-cp input_gro/system${i}.gro $i/system.gro
-
-cd $i
-
-echo 1
-
-#
-# If packmol was used for input, skip creation of box (assumed already to be in a .gro file 
-# with box lengths. Then perform solvation and ion addition (requires ions.mdp)
-# 
-#
-if [[ ! ${flags[1]} == '-packmol' ]]
-then
-	gmx_s editconf -f system.gro -o system.box.gro -c -box 6.5 6.5 6.5 -bt cubic
-	gmx_s solvate -cp system.box.gro -cs ../a99SBdisp.ff/a99SBdisp_water.gro -maxsol 8450 -o system.solv.gro -p topol.top
-	gmx_s grompp -f ../mdp/ions.mdp -c system.solv.gro -p topol.top -o system.ions.tpr -maxwarn 2
-
-# echo 13 for apo, and apo 15 for ligand
-
-echo 13 | gmx_s genion -s system.ions.tpr -o system.ions.gro -p topol.top -pname NA -nname CL -neutral -conc 0.02
-
-echo -e "1|13\nq\n" | gmx_s make_ndx -f system.ions.gro -o index.ndx
-
-else
-	cp system.gro system.ions.gro
-fi
-
-gmx_s grompp -f ../mdp/minim.mdp -c system.ions.gro -p topol.top -o system.em.tpr -maxwarn 2
-
-rm \#*
-cd ../
-done
-# echo `pwd`
-
-gmx_gpu_mpi mdrun -v -ntomp 2 -deffnm system.em -multidir {1..20} -dlb no 
-
-fi
-
-if [[ ${flags[0]} == '-eqnvt' ]]
-then
-
-for((i=1;i<=20;i++))
-do 
-
-   cd $i/
-   gmx_s grompp -f ../mdp/nvt.mdp -c system.em.gro -p topol.top -o system.eqnvt.tpr 
-   cd ../
-
-done
-
-gmx_gpu_mpi mdrun -v -ntomp 2 -deffnm system.eqnvt -multidir {1..20} -dlb no 
-
-fi
-
-if [[ ${flags[0]} == '-eqnpt' ]]
-then
-
-for((i=1;i<=20;i++))
-do
-	cd $i/
-	gmx_s grompp -f ../mdp/npt.mdp -c system.eqnvt.gro -p topol.top -o system.eqnpt.tpr 
-	cd ../
-done
-
-gmx_gpu_mpi mdrun -v -ntomp 2 -deffnm system.eqnpt -multidir {1..20} -dlb no 
-
-fi
-
-if [[ ${flags[0]} == '-eqnpt2' ]]
-then
-
-for((i=1;i<=20;i++))
-do
-	cd $i/
-	gmx_s grompp -f ../mdp/npt2.mdp -c system.eqnpt.gro -p topol.top -o system.eqnpt2.tpr & 
-	cd ../
-done
-wait
-
-gmx_gpu_mpi mdrun -v -deffnm system.eqnpt2 -multidir {1..20} -dlb no 
-
-fi
-
-if [[ ${flags[0]} == '-rest' ]]
-then
-        if [[ -d structure ]]
-        then
-            rm -rf structure
-        fi
-        mkdir structure
-
-for((i=1;i<=20;i++))
-do
-
-	cd $i/
-	gmx_s editconf -f system.eqnpt2.gro -o ${i}.new.gro -box ${flags[1]} ${flags[1]} ${flags[1]} -bt cubic
-	if [[ "$i" == "1" ]]
-	then
-		gmx_s grompp -f ../mdp/production.mdp -c ${i}.new.gro -p topol.top -pp ../processed.top -o del.tpr 
-		rm del.tpr
-	fi
-        cd ../
-	wait
-        cp ${i}/${i}.new.gro structure/
-done
-fi
-
-
+simulations
