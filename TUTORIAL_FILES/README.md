@@ -93,6 +93,7 @@ Questions to answer:
   * What differences do you observe between temperature replicas, as well as demultiplexed replicas? 
   * Are your simulations converged and how do you know? 
   * Try an observable of your interest, does this observable look converged, if not how can you overcome this discrepancy? 
+  * Lastly, how do your simulations compare to those provided in the Book Chapter? If you do not have access the trajectories are provided on Zenodo. 
 
 * After completing the basic tutorial, rerun the tutorial with 10 replicas each passing through the equilibration phases (you will need to modify the run_md.sh script or perform this by hand), you can start with your neutralized-solvated system for each replica, `system.gro`. 
   * What differences in final box size do you observe at the end of the NPT1 stage? 
