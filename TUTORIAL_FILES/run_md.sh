@@ -43,7 +43,7 @@ usage() {
 	echo " -h, --help	Display this help message"
 	echo " -v, --verbose	Enable verbosity"
     echo " -p, --topol  Topology File name for rest"
-    echo " -e, --ensemble   Select current phase of simulation: Setup, Min, NVT, NPT, REST"
+    echo " -s, --stage   Select current phase of simulation: Setup, Min, NVT, NPT, REST"
 	echo " -l, --log	STDIO log File"
 }
 
