@@ -33,6 +33,7 @@ verbose=""
 log=""
 stage=""
 topol=""
+tpr=""
 
 
 # Function to display script usage
@@ -45,6 +46,7 @@ usage() {
     echo " -p, --topol  Topology File name for rest"
     echo " -s, --stage   Select current phase of simulation: Setup, Min, NVT, NPT, REST"
 	echo " -l, --log	STDIO log File"
+    echo " -strip, --strip Stripped TPR file excluding waters"
 }
 
 has_argument() {
@@ -89,6 +91,18 @@ handle_flags() {
 				fi
 
 				topol=$(extract_argument $@)
+
+				shift
+				;;
+            -strip | --strip*)
+				if ! has_argument $@
+				then
+					echo "Stripped TPR File not specified." >&2
+					usage
+					exit 1
+				fi
+
+				tpr=$(extract_argument $@)
 
 				shift
 				;;
@@ -195,8 +209,8 @@ simulations () {
             mkdir REST
             cdir=`pwd`
 
-            cd REST
             cp mdp_files/prod.mdp REST/
+            cd REST
             echo "Scaling topologies for each replica and creating run input file prod.tpr"
             for((i=0;i<10;i++))
             do
@@ -209,6 +223,28 @@ simulations () {
                 cd $cdir/REST
             done
             mpirun -np 10 gmx mdrun $verbose -deffnm npt1 -multidir {0..9} -replex 800 -plumed plumed.dat -hrex -dlb no
+            ;;
+        pbc)
+            if [ ! -n "$tpr" ]
+            then
+                echo "Must provide a tpr file with water removed."
+                usage
+                exit 1
+            fi
+            if [ ! -f "$tpr" ]
+            then
+                echo "$tpr does not exist"
+                usage
+                exit 1
+            fi
+
+            for((i=0;i<10;i++))
+            do       
+                cd $i/
+                printf "1\n0\n" | gmx trjconv -s $tpr -f prod.xtc -o whole.xtc -pbc mol -center || ( echo "There is an issue with the provided TPR file, did you strip waters." && usage && exit 1 )
+                cd $cdir/REST
+            done
+            echo "Created pbc corrected, whole molecules and centered the protein in the box saved as whole.xtc in each replica directory."
             ;;
         *)
             echo "stage name must match one of: Setup, Min, NVT, NPT, REST"
@@ -236,7 +272,7 @@ fi
 if [ -n "$log" ]
 then
 	echo "Log file specified: $log"
-    exec > >(tee ${log_file}) 2>&1
+    exec > >(tee ${log}) 2>&1
 fi
 
 simulations
