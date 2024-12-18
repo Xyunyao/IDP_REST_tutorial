@@ -44,7 +44,7 @@ usage() {
 	echo " -h, --help	Display this help message"
 	echo " -v, --verbose	Enable verbosity"
     echo " -p, --topol  Topology File name for rest"
-    echo " -s, --stage   Select current phase of simulation: Setup, Min, NVT, NPT, REST"
+    echo " -s, --stage   Select current phase of simulation: Setup, Min, NVT, NPT, REST, PBC"
 	echo " -l, --log	STDIO log File"
     echo " -strip, --strip Stripped TPR file excluding waters"
 }
@@ -242,6 +242,7 @@ simulations () {
             do       
                 cd $i/
                 printf "1\n0\n" | gmx trjconv -s $tpr -f prod.xtc -o whole.xtc -pbc mol -center || ( echo "There is an issue with the provided TPR file, did you strip waters." && usage && exit 1 )
+                printf "1\n0\n" | gmx trjconv -s $tpr -f prod.gro -o prod.pdb -pbc mol -center || ( echo "There is an issue with producing prod.pdb." && usage && exit 1 )
                 cd $cdir/REST
             done
             echo "Created pbc corrected, whole molecules and centered the protein in the box saved as whole.xtc in each replica directory."

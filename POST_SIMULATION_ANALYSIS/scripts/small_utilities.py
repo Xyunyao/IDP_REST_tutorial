@@ -1,20 +1,20 @@
 # Class for block anaysis
 
-import os
-import sys
-import numpy as np
-import math
-from numpy import log2, zeros, mean, var, sum, arange, array, cumsum,  floor
+from math import isnan
+from numpy import log2, zeros, mean, var, sum, arange, array, cumsum,  floor, array, integer, floating, ndarray, asarray, round
+from numpy import average as npave
+from numpy import dot as npdot
 import pyblock
 import json
+import re
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, np.integer):
+        if isinstance(obj, integer):
             return int(obj)
-        if isinstance(obj, np.floating):
+        if isinstance(obj, floating):
             return float(obj)
-        if isinstance(obj, np.ndarray):
+        if isinstance(obj, ndarray):
             return obj.tolist()
         return json.JSONEncoder.default(self, obj)
 
@@ -71,16 +71,16 @@ def chunkIt(a:int, num:int):
         last += avg
     return out
 
-def get_blockerror(Data:np.array):
+def get_blockerror(Data:array):
     data = Data
-    average = np.average(data)
+    average = npave(data)
     be = block(data)**.5
 
     return average, be
 
 
-def get_blockerror_pyblock(Data:np.array):
-    average = np.average(Data)
+def get_blockerror_pyblock(Data:array):
+    average = npave(Data)
     if (average != 0) and (average != 1):
         reblock_data = pyblock.blocking.reblock(Data)
         opt = pyblock.blocking.find_optimal_block(len(Data), reblock_data)[0]
@@ -91,14 +91,14 @@ def get_blockerror_pyblock(Data:np.array):
     return average, float(be)
 
 
-def get_blockerror_pyblock_nanskip_rw_(Data:np.array,weights:np.array=None):
-    if weights is not None : average = np.dot(Data,weights)
-    else : average = np.average(Data)
+def get_blockerror_pyblock_nanskip_rw_(Data:array,weights:array=None):
+    if weights is not None : average = npdot(Data,weights)
+    else : average = npave(Data)
 
     if (average != 0) and (average != 1):
         reblock_data = pyblock.blocking.reblock(Data,weights=weights)
         opt = pyblock.blocking.find_optimal_block(len(Data), reblock_data)[0]
-        if(math.isnan(opt)):
+        if(isnan(opt)):
             be_max = 0
             for i in range(0, len(reblock_data)):
                 be = reblock_data[i][4]
@@ -111,8 +111,8 @@ def get_blockerror_pyblock_nanskip_rw_(Data:np.array,weights:np.array=None):
 
     return average, float(be)
 
-def get_blockerror_pyblock_max(Data:np.array):
-    average=np.average(Data)
+def get_blockerror_pyblock_max(Data:array):
+    average=npave(Data)
     if (average!=0) and (average!=1):
         reblock_data = pyblock.blocking.reblock(Data)
         be_max=0
@@ -125,29 +125,29 @@ def get_blockerror_pyblock_max(Data:np.array):
 
     return average,float(be)
 
-def get_blockerrors(Data:np.array, bound_frac:float):
+def get_blockerrors(Data:array, bound_frac:float):
     n_data = len(Data[0])
     block_errors = []
     ave = []
     for i in range(0, n_data):
         data = Data[:, i]
-        average = np.average(data)
+        average = npave(data)
         be = block(data)**.5
-        ave.append(np.average(data))
+        ave.append(npave(data))
         block_errors.append(be)
-    ave_bf = np.asarray(ave)/bound_frac
-    be_bf = np.asarray(block_errors)/bound_frac
+    ave_bf = asarray(ave)/bound_frac
+    be_bf = asarray(block_errors)/bound_frac
 
     return ave_bf, be_bf
 
 
-def get_blockerrors_pyblock(Data:np.array, bound_frac:float):
+def get_blockerrors_pyblock(Data:array, bound_frac:float):
     n_data = len(Data[0])
     block_errors = []
     ave = []
     for i in range(0, n_data):
         data = Data[:, i]
-        average = np.average(data)
+        average = npave(data)
         if (average != 0) and (average != 1):
             reblock_data = pyblock.blocking.reblock(data)
             opt = pyblock.blocking.find_optimal_block(
@@ -159,28 +159,27 @@ def get_blockerrors_pyblock(Data:np.array, bound_frac:float):
         ave.append(average)
         block_errors.append(be)
 
-    ave_bf = np.asarray(ave)/bound_frac
-    be_bf = np.asarray(block_errors)/bound_frac
+    ave_bf = asarray(ave)/bound_frac
+    be_bf = asarray(block_errors)/bound_frac
 
     return ave_bf, be_bf
 
 
-def get_blockerrors_pyblock_nanskip_rw_(Data:np.array, bound_frac:float, Weights:np.array=[]):
+def get_blockerrors_pyblock_nanskip_rw_(Data:array, bound_frac:float, Weights:array=[]):
     n_data = len(Data[0])
     block_errors = []
     ave = []
     for i in range(0, n_data):
         data = Data[:, i]
         weights=Weights
-        if len(weights)>0 : average = np.dot(data,weights)
-        else : average = np.average(Data)
+        if len(weights)>0 : average = npdot(data,weights)
+        else : average = npave(Data)
         
         if (average != 0) and (average != 1):
             reblock_data = pyblock.blocking.reblock(data,weights=weights)
             opt = pyblock.blocking.find_optimal_block(len(data), reblock_data)[0]
-#          opt_block = reblock_data[opt]
-#          be = opt_block[4]
-            if (math.isnan(opt)):
+
+            if (isnan(opt)):
                 be_max=0
                 for i in range(0, len(reblock_data)):
                     be = reblock_data[i][4]
@@ -194,8 +193,8 @@ def get_blockerrors_pyblock_nanskip_rw_(Data:np.array, bound_frac:float, Weights
         ave.append(average)
         block_errors.append(be)
 
-    ave_bf = np.asarray(ave)/bound_frac
-    be_bf = np.asarray(block_errors)/bound_frac
+    ave_bf = asarray(ave)/bound_frac
+    be_bf = asarray(block_errors)/bound_frac
     return ave_bf, be_bf
 
 def compute_temperatures(temp_range:tuple, nreps:int):
@@ -204,9 +203,9 @@ def compute_temperatures(temp_range:tuple, nreps:int):
     tlow, thigh = temp_range
     temps = []
     for i in range(nreps):
-        temps.append(np.round(tlow*exp((i)*log(thigh/tlow)/(nreps-1)),3))
+        temps.append(round(tlow*exp((i)*log(thigh/tlow)/(nreps-1)),3))
 
-    return np.array(temps)
+    return array(temps)
 
 def sequence_ticks_1(sequence):
 
@@ -216,13 +215,11 @@ def sequence_ticks_1(sequence):
             'SER' : ["S", "Serine"], 'THR' : ["T", "Threonine"], 'TRP' : ["W", "Tryptophan"], 'TYR' : ["Y", "Tyrosine"], 'VAL' : ["V", "Valine"],
             'CALA' : ["A", "Alanine"], 'NASP' : ["D", "Aspartic-acid"] }
 
-    import numpy as np
+    def split_temp(inp:ndarray):
 
-    def split_temp(inp:np.ndarray):
-        import re
 
-        exp=r"([a-z]+)([0-9]+)"
-        out=[]
+        exp = r"([a-z]+)([0-9]+)"
+        out = []
 
         for i in range(len(inp)):
             match = re.match(exp, inp[i], re.I)
@@ -232,12 +229,12 @@ def sequence_ticks_1(sequence):
 
             out.append(list(items))
 
-        return np.array(out)
+        return array(out)
 
-    a=split_temp(np.array(sequence))
+    a = split_temp(array(sequence))
 
-    b=np.zeros(len(a),dtype=object)
-    c=np.zeros(len(a),dtype=object)
+    b = zeros(len(a),dtype=object)
+    c = zeros(len(a),dtype=object)
 
     for i in range(0,len(a)):
 
@@ -250,9 +247,10 @@ def sequence_ticks_1(sequence):
         b[i]=''.join(a[i])
         c[i]=a[i][0]
 
-    return np.array(b) , np.array(c)
+    return array(b) , array(c)
 
 def make_dir(dir_name:str):
-    import os
-    if not os.path.exists(dir_name):
-        os.makedirs(dir_name)
+    from os.path import exists as pe
+    from os import makedirs 
+    if not pe(dir_name):
+        makedirs(dir_name)
