@@ -1,4 +1,4 @@
-# Protein Replica Exchange Simulations
+# Performing REST2 Protein Simulations
 
 ## Required before proceeding
 Before proceeding to running simulations, please make sure to install the required software as mentioned in [INSTALLATION_INSTRUCTIONS](./INSTALLATION_INSTRUCTIONS/). 
