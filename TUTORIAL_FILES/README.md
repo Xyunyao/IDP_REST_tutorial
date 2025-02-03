@@ -1,4 +1,4 @@
-# Performing REST2 Protein Simulations
+# IDP Replica Exchange with Solute Tempering (REST2)  Simulation Tutorial
 
 ## Required before proceeding
 Before proceeding to running simulations, please make sure to install the required software as mentioned in [INSTALLATION_INSTRUCTIONS](./INSTALLATION_INSTRUCTIONS/). 
