@@ -24,6 +24,7 @@ Options:
  -p, --topol  Topology File name for rest
  -s, --stage   Select current phase of simulation: Setup, Min, NVT, NPT, REST
  -l, --log      STDIO log File
+ -strip, --strip Stripped TPR file excluding waters
 ```
 If you desire to see verbose output, commands printed to screen and verbose output from gromacs use the `-v or --verbose` flags. 
 Provided is a flag to log all output from the script, `-l <logname> or --log=<logname>`.
