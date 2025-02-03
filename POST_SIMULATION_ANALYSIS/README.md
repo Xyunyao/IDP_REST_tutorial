@@ -1,6 +1,6 @@
 # Simulation Analysis 
 
-Hola! You are here means REST2 simulations are successfully simulated. Let's learn how or what kind of analysis one can perform on the simulated trajectories.
+Hello! If you are here your REST2 simulations are successfully simulated. Let's learn how and what kind of analysis one can perform on the simulated trajectories.
 
 ## Demultiplexing of trajectories.
 
