@@ -1,5 +1,5 @@
-# enhanced_sampling_tutorial
-Enhanced Sampling Tutorial - Focusing on REST2 application
+# IDP Replica Exchange with Solute Tempering (REST2)  Simulation Tutorial
+REST2 Enhanced Sampling Tutorial containing software installation instructions, post simulation analysis and tutorial files. 
 
 File Tree:
 ```bash
