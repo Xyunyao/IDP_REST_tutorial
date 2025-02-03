@@ -4,4 +4,4 @@ C-terminal $\alpha$-synuclein protein structure file which will be used to gener
 
 
 * `prot_only.pdb` : Structure file for C-terminal $\alpha$-synuclein containing 20 amino acids.
-* `processed.top` : Topology file for C-terminal $\alpha$-synuclein. It do not have any ions or solvent molecules.
+* `processed.top` : Topology file for C-terminal $\alpha$-synuclein. It does not have any ions or solvent molecules.
