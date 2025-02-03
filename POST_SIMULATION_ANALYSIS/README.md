@@ -1,4 +1,4 @@
-# Analysis 
+# Simulation Analysis 
 
 Hola! You are here means REST2 simulations are successfully simulated. Let's learn how or what kind of analysis one can perform on the simulated trajectories.
 
