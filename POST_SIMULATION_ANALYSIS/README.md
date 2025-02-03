@@ -1,4 +1,4 @@
-# Simulation Analysis 
+# IDP Replica Exchange with Solute Tempering (REST2) Simulation Analysis Tutorial
 
 Hello! If you are here your REST2 simulations are successfully simulated. Let's learn how and what kind of analysis one can perform on the simulated trajectories.
 
