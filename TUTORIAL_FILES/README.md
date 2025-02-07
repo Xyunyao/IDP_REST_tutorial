@@ -7,8 +7,9 @@ It is important to note, GROMACS must be compiled with mpi, patched with plumed 
 gmx
 ```
 
-## Simulation Helper Script
-The provided helper script requires the executable to have the correct name. If you have a different naming scheme, such as a unique postfix, you are invited to modify the given script `run_md.sh`. For example,
+## Performing Simulations with the Helper Script
+The provided helper script requires the gromacs ''gmx'' executable to have the correct name. If you have a different naming scheme, such as a unique postfix as described in the GROMACS manual's Installation Section, you are invited to modify the given script `run_md.sh`. If for example you compiled the gromacs ''gmx'' command to have the postfix ''_mpi'' such that the binary compiled is ''gmx_mpi'' you can substitute the ''gmx'' command in the script using sed inplace (sed -i ...) like so:
+
 ```bash
 sed -i "s/ gmx / gmx_mpi /g" run_md.sh
 ```
