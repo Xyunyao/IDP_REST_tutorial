@@ -18,14 +18,14 @@ Before continuing forward with the provided helper script the user must note the
 sed -i "s/ gmx / gmx_mpi /g" run_md.sh
 ```
 
-### run_md.sh is a helper script. When using the flags provided as described below you will be able to create:
-#### - Generate Extended Structure
-#### - Run a short vacuum simulation, extracting N_{replica} frames as starting structures
-#### - Solvate and add ions (neutralize)
-#### - Minimize each system in parallel
-#### - Thermalize each system to 300 K
-#### - Equilibrate the box size in two phases: Berendsen and Parrinello-Rahman
-#### - Run REST2 Simulations from the final snapshot of each replica 
+### run_md.sh is a helper script. When using the flags provided as described below you will be able to:
+- Generate Extended Structure
+- Run a short vacuum simulation, extracting N_{replica} frames as starting structures
+- Solvate and add ions (neutralize)
+- Minimize each system in parallel
+- Thermalize each system to 300 K
+- Equilibrate the box size in two phases: Berendsen and Parrinello-Rahman
+- Run REST2 Simulations from the final snapshot of each replica 
 
 ```bash
 run_md.sh -h or --help   # provides all options 
