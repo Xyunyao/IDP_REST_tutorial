@@ -18,6 +18,11 @@ Before continuing forward with the provided helper script the user must note the
 sed -i "s/ gmx / gmx_mpi /g" run_md.sh
 ```
 
+Additionally, it is required to make the shell script executable with the following command:
+```bash
+chmod +x run_md.sh
+```
+
 ### run_md.sh is a helper script. When using the flags provided as described below you will be able to:
 - Generate Extended Structure
 - Run a short vacuum simulation, extracting N_{replica} frames as starting structures
@@ -34,6 +39,7 @@ Usage: usage [Options]
 Options:
  -h, --help     Display this help message
  -v, --verbose  Enable verbosity
+ -g, --generate Generate extended structure with pmx and extract 10 frames from a short vacuum simulation
  -p, --topol  Topology File name for rest
  -s, --stage   Select current phase of simulation: Setup, Min, NVT, NPT, REST
  -l, --log      STDIO log File
@@ -45,12 +51,26 @@ Provided is a flag to log all output from the script, `-l <logname> or --log=<lo
 ## Running Simulations
 The preparation and simulations are separated into stages. 
 Stages need to be performed in order:
-*  Setup
-*  Equilibration
+* Generate extended chain from fasta sequence and extract N (10) frames, one for each replica, from a short vacuum simulation 
+*  Setup each replica by solvating and neutralizing
+*  Equilibration containing the following stages:
   *  Minimization
   *  Thermalization and NVT equilibration
-  *  NPT Equilibration
-*  Replica Exchange Molecular Dynamics
+  *  NPT Equilibration with the Berendsen barostate and then the Parrinello-Rahman barostat
+*  Replica Exchange with Solute Scaling (REST2) Molecular Dynamics Simulations
+
+### Generating starting structures
+For this tutorial we are simulating a 20-residue protein fragment from $alpha-synuclien, specifically the last 20 residues of the C-term. The 20-residue sequence in question will be refer to $alpha-syn for the remainder of the tutorial. The fasta sequence for the terminating 20-residues of the C-terminal domain are:
+```bash
+DMPVDPDNEAYEMPSEEGYQDYEPEA
+```
+
+To produce the 10 initial starting structures, enter the following command and take note of the residue sequence appended:
+```bash
+run_md.sh -g DMPVDPDNEAYEMPSEEGYQDYEPEA
+run_md.sh --generate DMPVDPDNEAYEMPSEEGYQDYEPEA
+```
+Both command entries are equivalent, either will do and you only need to select one to generate starting structures.
 
 ### Setup
 The helper script will setup the system with protein, water and ions with this command:
