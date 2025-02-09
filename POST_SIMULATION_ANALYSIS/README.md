@@ -1,10 +1,11 @@
-# IDP Replica Exchange with Solute Tempering (REST2) Simulation Analysis Tutorial
+# Analysis 
 
-Hello! If you are here your REST2 simulations are successfully simulated. Let's learn how and what kind of analysis one can perform on the simulated trajectories.
+Hola! You are here means REST2 simulations are successfully simulated. Let's learn how or what kind of analysis one can perform on the simulated trajectories. Pre-simulated trajectories can be downloaded from this [here](https://doi.org/10.5281/zenodo.14799045).
+
 
 ## Demultiplexing of trajectories.
 
-First step in the analysis workflow is to extract the absolute replica path followed by respective replicas. This will be helpful as a sanity check and debugging of our REST2 simulations. `scripts/demux.fix.pl` is used to generate a set of data files which contains the required information useful for demultiplexing. We use the [prod.log](https://dartmouth-my.sharepoint.com/:f:/r/personal/f006f50_dartmouth_edu/Documents/trajectories_for_book_chapter?csf=1&web=1&e=h22nwg) file of the base replica as an input. When prompted input the time step value of the simulation which is 0.002 ps in this case.
+First step in the analysis workflow is to extract the absolute replica path followed by respective replicas. This will be helpful as a sanity check and debugging of our REST2 simulations. `scripts/demux.fix.pl` is used to generate a set of data files which contains the required information useful for demultiplexing. We use the `prod.log` file of the base replica as an input. When prompted input the time step value of the simulation which is 0.002 ps in this case.
 
 ```bash
 perl demux.fix.pl <path to base replica prod.log>

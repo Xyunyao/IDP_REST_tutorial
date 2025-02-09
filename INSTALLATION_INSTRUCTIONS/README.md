@@ -1,19 +1,4 @@
-# Software Installation instructions Tutorial
-## Installing gromacs patched with Plumed2
-
-`install.sh` has a working script to install gromacs 2024.3 and plumed2 v2.9 in the users `$HOME` folder under `$HOME/opt`.
-From this directory simply perform these two commands to install:
-```bash
-chmod +x install.sh
-sh install.sh
-```
-
-Feel free to modify the installation directory. Be aware, if you change the installation directory to a location requiring elevated privileges the script will need to be performed via sudo, albiet not advised. 
-
-```bash
-chmod +x install.sh
-sudo sh ./install.sh
-```
+# Installation instructions
 
 ## Setup python environment
 
@@ -30,6 +15,24 @@ or
 Following the creation and activation of a python=3.11 venv environment:
 ```bash
 pip install -r tutorial_env.yml
+ 
 ```
+
+## Installing gromacs patched with Plumed2
+
+`install.sh` has a working script to install gromacs 2022.5 and plumed2 v2.9.1 in the users `$HOME` folder under `$HOME/opt`.
+From this directory simply perform these two commands to install:
+```bash
+chmod +x install.sh
+sh install.sh
+```
+
+Feel free to modify the installation directory. Be aware, if you change the installation directory to a location requiring elevated privileges the script will need to be performed via sudo, albiet not advised. 
+
+```bash
+chmod +x install.sh
+sudo sh ./install.sh
+```
+To check if the installation is successful type `gmx -h`
 
 
