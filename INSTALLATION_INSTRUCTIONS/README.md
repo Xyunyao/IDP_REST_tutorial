@@ -2,7 +2,7 @@
 
 ## Setup python environment
 
-To setup the python environment required for post analysis python scripts use `tutorial_env.yml` which creates a python environment called `REST_tutorial` and installs all the modules required. Follow this [link](https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html) to install conda in your in your PC or follow [link](https://docs.python.org/3/library/venv.html) to create a python virtual env.
+To setup the python environment required for the python scripts used for the analysis, use `tutorial_env.yml` which creates a python environment called `REST_tutorial` and installs all the modules required. Follow this [link](https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html) to install conda in your in your PC or follow [link](https://docs.python.org/3/library/venv.html) to create a python virtual env.
 
 Following conda installation run the following commands to create and activate the tutorial environment:
 
@@ -35,4 +35,14 @@ sudo sh ./install.sh
 ```
 To check if the installation is successful type `gmx -h`
 
+## Goals
 
+- [x] Setup python environment.
+- [x] Install Gromacs and Plumed
+- [ ] Setup the simulation replicas.
+- [ ] Equilibrate the replicas.
+- [ ] Setup REST2 simulation replicas.
+- [ ] Simulate replica exchange simulations.
+- [ ] Demultiplexing and correction of periodic boundary conditions.
+- [ ] Analysis of convergence of our simulation
+- [ ] Cheers for the successful completion of REST2 simulation :tada: 
