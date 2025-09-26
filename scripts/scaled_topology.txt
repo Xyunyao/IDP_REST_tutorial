@@ -1,0 +1,78 @@
+
+
+In rest2, the Hamiltionian is scaled as following:
+Hk​=K+λk​Usolute-solute​+λk​​Usolute-solvent​+Usolvent-solvent
+
+Now we are going to analyze how the hot atoms are marked and then scaled in the topology file.
+
+Step 1: create an index.idx for non solvent atoms:
+
+gmx_mpi select -s  ${tutdir}/${equil_dir}/0/npt1.tpr \
+               -select 'group "Protein" or group "Ion"' -on index.ndx
+
+
+Step 2. Generate a .pp file 
+
+gmx_mpi grompp -f  ${tutdir}/${equil_dir}/0/NVT.mdp -p ${tutdir}/${equil_dir}/0/topol.top -c ${tutdir}/${equil_dir}/0/nvt.gro -o dummy.tpr -pp processed.top
+
+(simply make sure teh protein is not applied in the .mdp file. If yes, it get’s copied to replica exchange topology file as well)
+
+Step 3. Output the hotatom index to a hot_atom.txt file
+
+awk '/^[[:space:]]*\[/{gsub(/[][]/,""); group=$0; next}
+               group=="Non-water" {print}' index.ndx | tr -s ' ' '\n' > hot_atoms.txt
+
+Step 4. Add _ to hotatom in the [atoms] section (only the first atom session, only for solvent and ion sessions)
+
+  awk -v HOT=hot_atoms.txt '
+       BEGIN {
+           # read hot atom ids into array hot[]
+           while ((getline < HOT) > 0) hot[$1]=1
+           in_atoms=0
+           atoms_done=0   # flag: have we already processed one [ atoms ] section?
+       }
+       # detect start of [ atoms ] section
+       /^\[ atoms \]/ {
+           print
+           if (atoms_done) {
+               in_atoms=0   # later [ atoms ] sections are printed raw
+           } else {
+               in_atoms=1   # first [ atoms ] section → process
+           }
+           next
+       }
+       # detect start of any new section
+       /^\[/ {
+           if (in_atoms) {
+               in_atoms=0
+               atoms_done=1
+           }
+           print
+           next
+       }
+       {
+           if (in_atoms && NF>=2) {
+               atom_id=$1
+               atom_type=$2
+               if (atom_id in hot) {
+                   # append underscore to atom type if not already present
+                   if (substr(atom_type, length(atom_type), 1) != "_")
+                       atom_type = atom_type "_"
+                   $2 = atom_type
+               }
+               print
+           } else {
+               print
+           }
+       }
+   ' processed.top > processed_hot.top
+
+
+Step 5. Use plumed to generate the scaled topology
+
+plumed partial_tempering $(lambda_value ${i}) < "${tutdir}/rest2_prep/processed_hot.top" > "${i}/topol.top"
+               touch "${i}/plumed.dat"
+
+
+5.1 the lamda_value is based on following equation: t=tmin*exp(idx*log(tmax/tmin)/n)
+(logarithmically even space ) 
